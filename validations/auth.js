@@ -1,13 +1,13 @@
 import { body } from "express-validator";
 
-export const loginValidation = [
+export const login = [
   body("email", "Invalid email").isEmail(),
   body("password", "Password should be at least 8 characters long").isLength({
     min: 8,
   }),
 ];
 
-export const registerValidation = [
+export const register = [
   body("email", "Invalid email").isEmail(),
   body("password", "Password should be at least 8 characters long").isLength({
     min: 8,

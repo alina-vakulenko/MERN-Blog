@@ -1,11 +1,10 @@
 import express from "express";
 import mongoose from "mongoose";
+import multer from "multer";
 
-import { registerValidation, loginValidation } from "./validations/auth.js";
-import { postCreateValidation } from "./validations/post.js";
-import checkAuth from "./utils/checkAuth.js";
-import * as UserController from "./controllers/UserController.js";
-import * as PostController from "./controllers/PostController.js";
+import { authValidation, postValidation } from "./validations/index.js";
+import { checkAuth, handleValidationErrors } from "./utils/index.js";
+import { UserController, PostController } from "./controllers/index.js";
 
 const PORT = process.env.PORT || 4444;
 
@@ -16,17 +15,57 @@ mongoose
 
 const app = express();
 
-app.use(express.json());
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
 
-app.post("/auth/register", registerValidation, UserController.register);
-app.post("/auth/login", loginValidation, UserController.login);
+const upload = multer({ storage });
+
+app.use(express.json());
+app.use("/uploads", express.static("uploads"));
+
+app.post(
+  "/auth/register",
+  authValidation.register,
+  handleValidationErrors,
+  UserController.register
+);
+app.post(
+  "/auth/login",
+  authValidation.login,
+  handleValidationErrors,
+  UserController.login
+);
 app.get("/auth/me", checkAuth, UserController.getMe);
 
 app.get("/posts", PostController.getAll);
 app.get("/posts/:id", PostController.getOne);
-app.post("/posts", checkAuth, postCreateValidation, PostController.create);
-app.patch("/posts/:id", checkAuth, PostController.update);
+app.post(
+  "/posts",
+  checkAuth,
+  postValidation.create,
+  handleValidationErrors,
+  PostController.create
+);
+app.patch(
+  "/posts/:id",
+  checkAuth,
+  postValidation.create,
+  handleValidationErrors,
+  PostController.update
+);
 app.delete("/posts/:id", checkAuth, PostController.remove);
+
+app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
+  res.json({
+    url: `/uploads/${req.file.originalname}`,
+  });
+});
 
 app.listen(PORT, (err) => {
   if (err) {

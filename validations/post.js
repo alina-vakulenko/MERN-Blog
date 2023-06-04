@@ -1,6 +1,6 @@
 import { body } from "express-validator";
 
-export const postCreateValidation = [
+export const create = [
   body("title", "Add post title").isLength({ min: 3 }).isString(),
   body("text", "Add post text")
     .isLength({
