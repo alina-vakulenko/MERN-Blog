@@ -7,6 +7,6 @@ export const create = [
       min: 10,
     })
     .isString(),
-  body("tags", "Add list of tags").optional().isString(),
+  body("tags", "Add list of tags").optional().isArray(),
   body("imageUrl", "Invalid post link").optional().isString(),
 ];

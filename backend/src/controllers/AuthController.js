@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
 import UserModel from "../models/User.js";
+import dotenv from "dotenv";
+dotenv.config({ path: "../../.env" });
 
 export const register = async (req, res) => {
   try {
@@ -42,8 +44,8 @@ export const login = async (req, res) => {
     const user = await UserModel.findOne({ email: req.body.email });
 
     if (!user) {
-      return res.status(404).json({
-        message: "User not found",
+      return res.status(401).json({
+        message: "User unauthorized",
       });
     }
 
@@ -53,23 +55,36 @@ export const login = async (req, res) => {
     );
 
     if (!isPasswordValid) {
-      return res.status(403).json({
-        message: "Login or password is not valid",
+      return res.status(401).json({
+        message: "User unauthorized",
       });
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       {
         _id: user._id,
       },
-      "secret123",
-      { expiresIn: "30d" }
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRE }
     );
+
+    const refreshToken = jwt.sign(
+      {
+        _id: user._id,
+      },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: process.env.REFRESH_TOKEN_EXPIRE }
+    );
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     const { passwordHash, ...userData } = user._doc;
     res.json({
       ...userData,
-      token,
+      accessToken,
     });
   } catch (err) {
     console.log(err);
@@ -92,4 +107,43 @@ export const getMe = async (req, res) => {
     console.log(err);
     res.status(500).json({ message: "Server Error" });
   }
+};
+
+export const refresh = async (req, res) => {
+  try {
+    const cookies = req.cookies;
+    if (!cookies?.jwt) {
+      return res.sendStatus(401);
+    }
+    const refreshToken = cookies.jwt;
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const user = await UserModel.findById(decoded._id);
+
+    if (!user) {
+      return res.sendStatus(403);
+    }
+
+    const accessToken = jwt.sign(
+      {
+        _id: user._id,
+      },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRE }
+    );
+
+    res.json({
+      accessToken,
+    });
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(403);
+  }
+};
+
+export const logout = async (req, res) => {
+  const cookies = req.cookies;
+  if (!cookies?.jwt) return res.sendStatus(204);
+  const refreshToken = cookies.jwt;
+  res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
+  return res.sendStatus(204);
 };
