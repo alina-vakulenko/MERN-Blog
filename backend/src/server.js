@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config({ path: "../../.env" });
 import express from "express";
 import mongoose from "mongoose";
 import path from "path";
@@ -7,18 +9,21 @@ import cookieParser from "cookie-parser";
 import multer from "multer";
 
 import corsOptions from "./config/corsOptions.js";
+import connectDB from "./config/dbConnection.js";
 import { checkAuth, credentials } from "./middleware/index.js";
 import authRouter from "./routes/auth/auth.js";
-import postsRouter from "./routes/api/posts.js";
+import {
+  usersRouter,
+  productsRouter,
+  categoriesRouter,
+  postsRouter,
+} from "./routes/api/index.js";
 
 const PORT = process.env.PORT || 4444;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-mongoose
-  .connect("mongodb://root:example@mongo:27017/mongo_db?authSource=admin")
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log("DB ERROR", err));
+connectDB();
 
 const app = express();
 
@@ -39,6 +44,9 @@ app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 app.use("/auth", authRouter);
+app.use("/users", usersRouter);
+app.use("/products", productsRouter);
+app.use("/categories", categoriesRouter);
 app.use("/posts", postsRouter);
 
 app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
@@ -56,10 +64,7 @@ app.all("*", (req, res) => {
   }
 });
 
-app.listen(PORT, (err) => {
-  if (err) {
-    console.log(err);
-    return;
-  }
-  console.log(`Server is running on port ${PORT}`);
+mongoose.connection.once("open", () => {
+  console.log("Connected to MongoDB");
+  app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 });

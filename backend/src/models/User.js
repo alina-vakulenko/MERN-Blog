@@ -11,6 +11,14 @@ const UserSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    roles: {
+      User: {
+        type: Number,
+        default: 1111,
+      },
+      Editor: Number,
+      Admin: Number,
+    },
     passwordHash: {
       type: String,
       required: true,
