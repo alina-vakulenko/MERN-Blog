@@ -1,19 +1,8 @@
-import { Schema, Document, model, ObjectId } from "mongoose";
-import { hashPassword } from "../utils/passwordHash";
-import { IUserRoles } from "../config/roles";
+import { Schema, model } from "mongoose";
 
-export interface IUserCreate {
-  name: string;
-  email: string;
-  password: string;
-  avatarUrl?: string;
-}
+import { IUser } from "../types/user";
 
-export interface IUser extends IUserCreate, Document {
-  roles: IUserRoles;
-}
-
-const UserSchema: Schema = new Schema(
+const UserSchema = new Schema<IUser>(
   {
     name: {
       type: String,
@@ -35,7 +24,6 @@ const UserSchema: Schema = new Schema(
     password: {
       type: String,
       required: true,
-      select: false,
     },
     avatarUrl: String,
   },
@@ -43,20 +31,5 @@ const UserSchema: Schema = new Schema(
     timestamps: true,
   }
 );
-
-// UserSchema.set("toJSON", {
-//   transform: function (doc, ret, options) {
-//     delete ret.password;
-//     return ret;
-//   },
-// });
-
-export type IUserLogin = Pick<IUserCreate, "email" | "password">;
-export interface IUserAuthenticated extends Omit<IUser, "roles"> {
-  userId: ObjectId;
-  roles: number[];
-}
-export type IUserUpdate = Omit<IUserCreate, "password" | "email">;
-export type IUserResetPassword = Pick<IUserCreate, "email">;
 
 export default model<IUser>("User", UserSchema);

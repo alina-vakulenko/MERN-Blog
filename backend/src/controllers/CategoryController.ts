@@ -24,7 +24,7 @@ export const getAll = async (req: Request, res: Response) => {
     const categories = await CategoryModel.find();
     if (!categories)
       return res.status(204).json({ message: "No categories found" });
-    res.json(categories);
+    res.json({ count: categories.length, categories });
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -38,8 +38,8 @@ export const getOne = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Category slug is required" });
 
   try {
-    const categorySlug = req.params.slug;
-    const category = await CategoryModel.findOne({ slug: categorySlug }).exec();
+    const categorySlug: string = req.params.slug;
+    const category = await CategoryModel.findOne({ slug: categorySlug });
 
     if (!category) {
       return res.status(404).json({
@@ -60,8 +60,8 @@ export const update = async (req: Request, res: Response) => {
   if (!req.params.slug)
     return res.status(400).json({ message: "Category slug is required" });
   try {
-    const categorySlug = req.params.slug;
-    const category = await CategoryModel.findOne({ slug: categorySlug }).exec();
+    const categorySlug: string = req.params.slug;
+    const category = await CategoryModel.findOne({ slug: categorySlug });
 
     if (!category) {
       return res.status(404).json({
@@ -100,8 +100,8 @@ export const remove = async (req: Request, res: Response) => {
   if (!req.params.slug)
     return res.status(400).json({ message: "Category slug is required" });
   try {
-    const categorySlug = req.params.slug;
-    const category = await CategoryModel.findOne({ slug: categorySlug }).exec();
+    const categorySlug: string = req.params.slug;
+    const category = await CategoryModel.findOne({ slug: categorySlug });
 
     if (!category) {
       return res.status(404).json({

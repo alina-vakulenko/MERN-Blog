@@ -1,12 +1,5 @@
-import { Schema, Types, model } from "mongoose";
-
-interface IProduct {
-  category: Types.ObjectId;
-  title: string;
-  price: number;
-  description?: string;
-  images?: string[];
-}
+import { Schema, model } from "mongoose";
+import { IProduct } from "../types/product";
 
 const ProductSchema = new Schema<IProduct>(
   {
@@ -34,4 +27,4 @@ const ProductSchema = new Schema<IProduct>(
   }
 );
 
-export default model("Product", ProductSchema);
+export default model<IProduct>("Product", ProductSchema);

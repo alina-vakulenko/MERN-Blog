@@ -1,14 +1,7 @@
 import jwt from "jsonwebtoken";
-import { ObjectId } from "mongoose";
 
 import envVariables from "../env";
-
-export interface IJwtPayload {
-  _id: ObjectId;
-  roles: number[];
-}
-
-export type Token = string;
+import { IJwtPayload, Token } from "../types/jwt";
 
 export const jwtSign = (
   payload: IJwtPayload,

@@ -1,15 +1,14 @@
 import { Request, Response } from "express";
-import { IUserLogin } from "../models/User";
 import { UserService } from "../services";
 import { comparePasswords } from "../utils/passwordHash";
 import {
   generateAccessToken,
   generateRefreshToken,
   decodeRefreshToken,
-  IJwtPayload,
-  Token,
 } from "../utils/jwt";
 import cookieOptions from "../config/cookieOptions";
+import { IUserLogin, Roles } from "../types/user";
+import { IJwtPayload, Token } from "../types/jwt";
 
 export const login = async (req: Request, res: Response) => {
   const loginInput: IUserLogin = req.body;
@@ -27,23 +26,24 @@ export const login = async (req: Request, res: Response) => {
     if (!user) {
       return res.sendStatus(401);
     }
+    const { password, roles, ...userData } = user;
 
-    const isPasswordValid = await comparePasswords(
+    const isPasswordValid: boolean = await comparePasswords(
       loginInput.password,
-      user.password
+      password
     );
     if (!isPasswordValid) {
       return res.sendStatus(401);
     }
 
-    const userRoles: number[] = Object.values(user.roles).filter(Boolean);
-    const tokenPayload: IJwtPayload = { _id: user._id, roles: userRoles };
-    console.log("pauload", tokenPayload);
+    const userRoles: Roles = Object.values(roles).filter(Boolean);
+    const tokenPayload: IJwtPayload = { userId: user._id, roles: userRoles };
     const refreshToken: Token = generateRefreshToken(tokenPayload);
     const accessToken: Token = generateAccessToken(tokenPayload);
+    const userOutput = { ...userData, accessToken, roles: userRoles };
 
     res.cookie("jwt", refreshToken, cookieOptions);
-    res.json({ ...user, roles: userRoles, accessToken });
+    res.json(userOutput);
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Login failed" });
@@ -59,13 +59,13 @@ export const refresh = async (req: Request, res: Response) => {
 
   try {
     const decodedUser = decodeRefreshToken(cookies.jwt);
-    const user = await UserService.findUserById(String(decodedUser._id));
+    const user = await UserService.findUserById(String(decodedUser.userId));
     if (!user) {
       return res.sendStatus(403);
     }
 
     const tokenPayload: IJwtPayload = {
-      _id: user._id,
+      userId: user._id,
       roles: decodedUser.roles,
     };
 

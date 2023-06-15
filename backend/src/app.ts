@@ -1,8 +1,6 @@
 import "dotenv/config";
-// dotenv.config({ path: "../.env" });
 import express from "express";
 import path from "path";
-// import { fileURLToPath } from "url";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import multer from "multer";
@@ -16,9 +14,6 @@ import {
   categoriesRouter,
   postsRouter,
 } from "./routes/api";
-
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
 
 const app = express();
 

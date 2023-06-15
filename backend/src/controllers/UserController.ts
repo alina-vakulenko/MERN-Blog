@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { UserService } from "../services";
-import { IUserCreate } from "../models/User";
+import { IUserCreate, IUser, IUserUpdate, IUserOutput } from "../types/user";
+import { IJwtPayload } from "./../types/jwt";
 
 export const create = async (req: Request, res: Response) => {
   const registerInput: IUserCreate = req.body;
@@ -26,9 +27,14 @@ export const create = async (req: Request, res: Response) => {
 
 export const getAll = async (req: Request, res: Response) => {
   try {
-    const users = await UserService.getAllUsers();
+    const users: IUser[] = await UserService.getAllUsers();
     if (!users) return res.status(204).json({ message: "No users found" });
-    res.json({ count: users.length, users });
+    const usersOutput = users.map((user) => {
+      const { roles, password, ...userData } = user;
+      const userRoles = Object.values(roles).filter(Boolean);
+      return { ...userData, roles: userRoles };
+    });
+    res.json({ count: users.length, users: usersOutput });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to load users" });
@@ -47,8 +53,12 @@ export const getOne = async (req: Request, res: Response) => {
         message: "User was not found",
       });
     }
-
-    res.json(user);
+    const { password, roles, ...userData } = user;
+    const userOutput: IUserOutput = {
+      ...userData,
+      roles: Object.values(roles).filter(Boolean),
+    };
+    res.json(userOutput);
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -95,7 +105,7 @@ export const update = async (req: Request, res: Response) => {
   if (!req.params.id)
     return res.status(400).json({ message: "User id is required" });
 
-  const { name, avatarUrl, roles } = req.body;
+  const { name, avatarUrl }: IUserUpdate = req.body;
   try {
     const userId = req.params.id;
     const user = await UserService.findUserById(userId);
@@ -135,14 +145,19 @@ export const update = async (req: Request, res: Response) => {
 
 export const getMe = async (req: Request, res: Response) => {
   try {
-    const userPayload = res.locals.user;
-    const user = await UserService.findUserByField({ userId: userPayload._id });
+    const userPayload: IJwtPayload = res.locals.user;
+    const user = await UserService.findUserById(String(userPayload.userId));
     if (!user) {
       return res.status(404).json({
         message: "User not found",
       });
     }
-    res.json({ user, roles: Object.values(user.roles) });
+    const { password, roles, ...userData } = user;
+    const userOutput: IUserOutput = {
+      ...userData,
+      roles: Object.values(roles).filter(Boolean),
+    };
+    res.json(userOutput);
   } catch (err) {
     res.status(500).json({ message: "Failed to get logged-in user" });
   }

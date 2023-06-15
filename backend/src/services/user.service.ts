@@ -1,13 +1,14 @@
 import { FilterQuery } from "mongoose";
 
-import UserModel, { IUser, IUserCreate, IUserUpdate } from "../models/User";
+import UserModel from "../models/User";
 import { hashPassword } from "../utils/passwordHash";
+import { IUser, IUserCreate, IUserUpdate } from "../types/user";
 
 export const createUser = async (input: IUserCreate) => {
-  const { password, email, name } = input;
+  const { password, ...otherFields } = input;
   const hashedPassword = await hashPassword(password);
 
-  return await UserModel.create({ email, name, password: hashedPassword });
+  return await UserModel.create({ ...otherFields, password: hashedPassword });
 };
 
 export const findUserById = async (id: string) => {
@@ -19,7 +20,7 @@ export const findUserByField = async (query: FilterQuery<IUser>) => {
 };
 
 export const getAllUsers = async () => {
-  return await UserModel.find();
+  return await UserModel.find().lean();
 };
 
 export const deleteUserByField = async (query: FilterQuery<IUser>) => {

@@ -1,7 +1,9 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 import { default as slugify } from "slugify";
 
-const CategorySchema = new mongoose.Schema(
+import { ICategory } from "../types/category";
+
+const CategorySchema = new Schema<ICategory>(
   {
     slug: {
       type: String,
@@ -25,4 +27,4 @@ CategorySchema.pre("save", function (next) {
   next();
 });
 
-export default mongoose.model("Category", CategorySchema);
+export default model<ICategory>("Category", CategorySchema);

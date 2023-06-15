@@ -1,8 +1,4 @@
-type RoleKey = "Admin" | "Editor" | "User";
-
-export type IUserRoles = {
-  [key in RoleKey]: number;
-};
+import { IUserRoles } from "../types/user";
 
 const ROLES: IUserRoles = {
   Admin: 7878,

@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
+import { Roles } from "../types/user";
 
-export default (...allowedRoles: number[]) => {
+export default (...allowedRoles: Roles) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const roles: number[] = res.locals.roles;
+    const roles: Roles = res.locals.user.roles;
     if (!roles?.length)
       return res.status(401).json({ message: "You are not logged in" });
 

@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+
 import { decodeAccessToken } from "../utils/jwt";
 
 export default (req: Request, res: Response, next: NextFunction) => {
@@ -9,8 +10,6 @@ export default (req: Request, res: Response, next: NextFunction) => {
     if (typeof authHeader === "string") {
       if (authHeader.startsWith("Bearer")) {
         jwtBearerHeader = authHeader;
-      } else {
-        return res.status(401).json({ message: "You are not logged in" });
       }
     } else if (Array.isArray(authHeader)) {
       jwtBearerHeader = authHeader.find((header) =>

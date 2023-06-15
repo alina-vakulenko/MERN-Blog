@@ -33,7 +33,7 @@ router
     deserializeUser,
     requireAuth,
     checkRoles(ROLES.Admin, ROLES.Editor),
-    userValidation.create,
+    userValidation.update,
     handleValidationErrors,
     UserController.update
   )

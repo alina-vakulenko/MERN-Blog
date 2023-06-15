@@ -1,14 +1,16 @@
 import { Request, Response } from "express";
 import ProductModel from "../models/Product";
+import { IProductCreate, IProduct } from "../types/product";
 
 export const create = async (req: Request, res: Response) => {
-  const { category, title, price, description, images } = req.body;
+  const { category, title, price, description, images }: IProductCreate =
+    req.body;
   if (!category || !title || !price)
     return res
       .status(400)
       .json({ message: "Tile, price and category are required" });
   try {
-    const newProduct = await ProductModel.create({
+    const newProduct: IProduct = await ProductModel.create({
       category: req.body.category,
       title: req.body.title,
       price: req.body.price,
@@ -26,7 +28,7 @@ export const create = async (req: Request, res: Response) => {
 
 export const getAll = async (req: Request, res: Response) => {
   try {
-    const products = await ProductModel.find();
+    const products: IProduct[] = await ProductModel.find();
     if (!products)
       return res.status(204).json({ message: "No products found" });
     res.json(products);
@@ -42,8 +44,8 @@ export const getOne = async (req: Request, res: Response) => {
   if (req.params.id)
     return res.status(400).json({ message: "Product ID is required" });
   try {
-    const productId = req.params.id;
-    const product = await ProductModel.findById(productId).exec();
+    const productId: string = req.params.id;
+    const product = await ProductModel.findById(productId);
 
     if (!product) {
       return res.status(404).json({
@@ -64,8 +66,8 @@ export const update = async (req: Request, res: Response) => {
   if (req.params.id)
     return res.status(400).json({ message: "Product ID is required" });
   try {
-    const productId = req.params.id;
-    const product = await ProductModel.findById(productId).exec();
+    const productId: string = req.params.id;
+    const product = await ProductModel.findById(productId);
 
     if (!product) {
       return res.status(404).json({
@@ -107,7 +109,7 @@ export const remove = async (req: Request, res: Response) => {
   if (req.params.id)
     return res.status(400).json({ message: "Product ID is required" });
   try {
-    const productId = req.params.id;
+    const productId: string = req.params.id;
     const product = await ProductModel.findById(productId).exec();
 
     if (!product) {
